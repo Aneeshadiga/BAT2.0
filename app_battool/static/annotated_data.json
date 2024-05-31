@@ -1,0 +1,41 @@
+[
+    {
+        "startX": 133,
+        "startY": 81,
+        "endX": 321,
+        "endY": 253,
+        "batSpecies": "Indian Flying Fox",
+        "color": "#53ea07"
+    },
+    {
+        "startX": 413,
+        "startY": 89,
+        "endX": 630,
+        "endY": 254,
+        "batSpecies": "Indian Roundleaf Bat",
+        "color": "#ff8a8a"
+    },
+    {
+        "startX": 334,
+        "startY": 76,
+        "endX": 522,
+        "endY": 180,
+        "batSpecies": "bat species 5",
+        "color": "#f3f8af"
+    },
+    {
+        "startX": 696,
+        "startY": 92,
+        "endX": 970,
+        "endY": 280,
+        "batSpecies": "Bat Species 4",
+        "color": "#9ae8ea"
+    },
+    {
+        "startX": 615,
+        "startY": 293,
+        "endX": 932,
+        "endY": 334,
+        "batSpecies": "Bat species 2"
+    }
+]

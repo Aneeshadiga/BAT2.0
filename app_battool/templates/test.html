@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <link rel="stylesheet" href="{% static 'home.css' %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aoboshi One:wght@400&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+  <title>Bat Call Annotation Tool</title>
+</head>
+
+<body>
+  <div id="main-heading">
+    <p id="bat-heading">Bat Call Annotation Tool</p>
+  </div>
+  <div id="paragraph-info">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+    labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
+    ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+    pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+    laborum.</div>
+  <div class="input-area">
+    <form id="myForm" method="POST" enctype="multipart/form-data" action="{% url 'result' %}">
+      {% csrf_token %}
+      <input type="file" id="name" name="file_name" class="name" accept=".wav, .zip" required>
+      <button type="submit" id="choose-file">Submit</button>
+    </form>
+  </div>
+
+  <canvas id="spectrogramCanvas"></canvas>
+  <p id="coordinates"></p>
+  <div id="canvas-save">
+    <label for="batSpecies" id="class-species" style="color: white">Choose a bat species:</label>
+    <select name="Batspecies" id="batSpecies">
+      <option value="" disabled selected>Select</option>
+      {% for species in species_names %}
+      <option value="{{ species }}" style="width: 200px;">{{ species }}</option>
+      {% endfor %}
+    </select>
+    <button id="saveButton">Save</button>
+    <button id="addButton" onclick="toggleForm()">Add+</button>
+
+    <div>
+
+    </div>
+
+    <div id="addSpeciesArea"></div>
+  </div>
+  <div id="form-container" style="display: none;">
+    <label for="newSpecies" id="labelForSpecies">Add Name:</label>
+    <input type="text" id="newSpecies" placeholder="Enter species name">
+    <button id="addSpeciesButton" onclick="addValue()">Add</button>
+  </div>
+  <h3 id="stored-values-head">Stored Values</h3>
+  <div id="storedValues" style="display: none;">
+    <ul id="valuesList"></ul>
+  </div>
+  <div>
+    <button type="submit" onclick="sendDataToBackend()" class="submit-data" id="send-back">Submit</button>
+  </div>
+  <div id="downloadDiv">
+    <button id="downloadDataButton" onclick="downloadData()">Download Annotated Data</button>
+  </div>
+
+  <script>
+    // Get the canvas element and its 2d context
+    const canvas = document.getElementById('spectrogramCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Variables to store the rectangle coordinates
+    let startX, startY, endX, endY;
+    let isDrawing = false;
+
+    // Array to store saved values
+    const savedValues = [];
+
+    // Set the dimensions of the spectrogram image (replace these values with your actual image dimensions)
+    const spectrogramWidth = {{ width }};
+    const spectrogramHeight = {{ height }};
+
+    // Set the canvas dimensions based on the spectrogram image
+    canvas.width = spectrogramWidth;
+    canvas.height = spectrogramHeight;
+
+    // Load the image using a relative path (replace with the actual path)
+    const img = new Image();
+    img.src = "data:image/png;base64,{{ image }}"; // Replace with the actual path
+
+    // Event listeners for mouse actions
+    canvas.addEventListener('mousedown', (e) => {
+      startX = Math.round(e.clientX - canvas.getBoundingClientRect().left);
+      startY = Math.round(e.clientY - canvas.getBoundingClientRect().top);
+      isDrawing = true;
+
+      // Draw the saved rectangles
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawSpectrogramImage();
+      drawSavedRectangles();
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDrawing) return;
+
+      endX = Math.round(e.clientX - canvas.getBoundingClientRect().left);
+      endY = Math.round(e.clientY - canvas.getBoundingClientRect().top);
+
+      // Clear the canvas and redraw the spectrogram and saved rectangles
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawSpectrogramImage();
+      drawSavedRectangles();
+
+      // Draw the current rectangle
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(startX, startY, endX - startX, endY - startY);
+
+      // Display coordinates
+      document.getElementById('coordinates').textContent = `Coordinates: (${startX}, ${startY}) to (${endX}, ${endY})`;
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      if (isDrawing) {
+        isDrawing = false;
+      }
+    });
+
+    // Save button click event
+    document.getElementById('saveButton').addEventListener('click', () => {
+      // Check if coordinates are defined
+      if (startX === undefined || startY === undefined || endX === undefined || endY === undefined) {
+        alert('Coordinates are undefined. Not saving.');
+        return;
+      }
+
+      // Check for duplicate values before saving
+      const isDuplicate = savedValues.some((value) => {
+        return value.startX === startX && value.startY === startY &&
+          value.endX === endX && value.endY === endY;
+      });
+
+      if (!isDuplicate) {
+        // Get the selected bat species
+        batSpecies = document.getElementById('batSpecies').value;
+        if (batSpecies === "") {
+          alert("Please select the species");
+          return;
+        }
+
+        // Push the coordinates and bat species to the array
+        savedValues.push({ startX, startY, endX, endY, batSpecies });
+
+        // Log the saved values
+        console.log('Saved Values:', savedValues);
+
+        // Display stored values
+        displayStoredValues();
+      } else {
+        console.log('Duplicate values. Not saving.');
+      }
+    });
+
+
+    // Function to send data to the backend
+    function sendDataToBackend() {
+      if (savedValues.length === 0) {
+        alert("No saved values to submit.");
+        return;
+      }
+
+      var jsonData = JSON.stringify(savedValues);
+      var csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+      $.ajax({
+        url: '/inputview',
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        data: jsonData,
+        headers: {
+          "X-CSRFToken": csrfToken
+        },
+        dataType: 'text',
+        success: function (result) {
+          alert("Success");
+        },
+        error: function (error) {
+          console.error("Error:", error);
+          alert("Error submitting data to the backend.");
+        }
+      });
+    }
+
+  
+    // Function to draw the spectrogram image
+    function drawSpectrogramImage() {
+      // Draw the image onto the canvas
+      ctx.drawImage(img, 0, 0, spectrogramWidth, spectrogramHeight);
+    }
+
+    // Function to draw the saved rectangles
+   
+    // Function to display existing annotated data as stored values
+    function load_annotations(annotated_data) {
+      // If annotated_data exists, display it
+      if (annotated_data && annotated_data.length > 0) {
+        savedValues.push(...annotated_data);
+
+        // Log the loaded values
+        console.log('Loaded Values:', savedValues);
+
+        // Display stored values
+        displayStoredValues();
+      }
+    }
+
+    // Initialize the canvas and load existing data on page load
+    window.onload = function () {
+      drawSpectrogramImage();
+      load_annotations({{ annotated_data| safe }});
+    setTimeout(function () {
+      drawSavedRectangles();
+    }, 1000); // Adjust the delay as needed
+    };
+
+    function toggleForm() {
+      // Get the form container element
+      var formContainer = document.getElementById("form-container");
+
+      // Toggle the visibility of the form
+      if (formContainer.style.display === "none") {
+        formContainer.style.display = "flex";
+      } else {
+        formContainer.style.display = "none";
+      }
+    }
+
+
+    document.getElementById('addSpeciesButton').addEventListener('click', () => {
+      const newSpecies = document.getElementById('newSpecies').value;
+
+      // Check if the new species is not empty
+      if (newSpecies.trim() !== '') {
+        // Add the new species to the dropdown
+        const option = document.createElement('option');
+        option.value = newSpecies;
+        option.text = newSpecies;
+
+        // Clear the input field
+        document.getElementById('newSpecies').value = '';
+
+        // Send the new species to the backend
+        addNewSpeciesToBackend(newSpecies);
+      }
+    });
+
+    // Function to send the new species to the backend
+    function addNewSpeciesToBackend(newSpecies) {
+      var csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    
+      // Send an AJAX request to your Django view to handle the addition of new species
+      $.ajax({
+        url: '/add_species',  // Replace with the actual URL of your Django view
+        type: 'POST',
+        data: { 'new_species': newSpecies, 'csrfmiddlewaretoken': csrfToken },
+        dataType: 'json',
+        success: function (response) {
+          console.log('Species added successfully:', response);
+    
+          // Update the dropdown with the new species
+          updateSpeciesDropdown(newSpecies);
+        },
+        error: function (error) {
+          console.error('Error adding species:', error);
+          // Handle errors or provide feedback to the user
+        }
+      });
+    }
+    
+    // Function to update the species dropdown with a new species
+    function updateSpeciesDropdown(newSpecies) {
+      // Get the dropdown element
+      var speciesDropdown = document.getElementById('batSpecies');
+    
+      // Create a new option element
+      var option = document.createElement('option');
+    
+      // Set the value and text content of the option to the new species
+      option.value = newSpecies;
+      option.textContent = newSpecies;
+    
+      // Append the new option to the dropdown
+      speciesDropdown.add(option);
+    
+      // Clear the input field
+      document.getElementById('newSpecies').value = '';
+    }
+
+
+    document.getElementById('downloadDataButton').addEventListener('click', () => {
+      // Trigger the download
+      window.location.href = '{% static "BatTool_SpectrogramData.zip" %}';
+    });
+
+    const fixedColors = [
+    '#53ea07', '#ff8a8a', '#f3f8af', '#9ae8ea', '#cb5de9',
+    '#ffffff', '#d8ccf5', '#007bff', '#6ea08d', '#f8c50d',
+    '#6c0aff', '#d10099', '#ebb794'
+];
+
+// Function to draw the saved rectangles with fixed colors
+function drawSavedRectangles() {
+    savedValues.forEach((value, index) => {
+        // Use a fixed color for each saved rectangle
+        const fixedColorIndex = index % fixedColors.length;
+        value.color = fixedColors[fixedColorIndex];
+
+        ctx.strokeStyle = value.color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(value.startX, value.startY, value.endX - value.startX, value.endY - value.startY);
+    });
+}
+
+// Function to display stored values
+function displayStoredValues() {
+    const valuesList = document.getElementById('valuesList');
+    valuesList.innerHTML = '';
+    var formContainer = document.getElementById("storedValues");
+    formContainer.style.display = "flex";
+
+    savedValues.forEach((value, index) => {
+        const listItem = document.createElement('li');
+        listItem.style.color = value.color;  // Set the text color to the rectangle color
+        listItem.innerHTML = `Echo ${index + 1}: (${value.startX}, ${value.startY}) to (${value.endX}, ${value.endY}), Species: <strong>${value.batSpecies}</strong>`;
+
+        // Add a delete button for each stored value
+        const deleteButton = document.createElement('button');
+        deleteButton.classList.add('delete-button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', () => {
+            // Remove the value from the array and update the display
+            savedValues.splice(index, 1);
+            displayStoredValues();
+            // Redraw the canvas without the deleted rectangle
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawSpectrogramImage();
+            drawSavedRectangles();
+        });
+
+        listItem.appendChild(deleteButton);
+        valuesList.appendChild(listItem);
+    });
+}
+  </script>
+
+</body>
+
+</html>

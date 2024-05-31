@@ -1,0 +1,41 @@
+name: Run tests
+on: push
+
+jobs:
+  execute_tests_ubuntu:
+    name: Install requirements and execute tests on Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update
+        run: sudo apt update
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Install pip
+        run: sudo apt install python3-pip
+      - name: Install requirements
+        run: pip install -r requirements.txt
+      - name: Execute tests
+        env:
+          DJANGO_SETTINGS_MODULE: battool.settings
+        run: |
+          python manage.py test
+
+  execute_tests_windows:
+    name: Install requirements and execute tests on Windows
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11  # Replace with your desired Python version
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Execute tests
+        env:
+          DJANGO_SETTINGS_MODULE: battool.settings
+        run: |
+          python manage.py test

@@ -1,0 +1,269 @@
+body{ 
+  background-color: #3a3a3a;
+  padding: 0;
+  overflow-x: hidden;
+}
+#main-heading {
+  color: #f4f0e6;
+  background-color: rgba(0,0,0,0.55);
+  font-size: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Josefin Sans', sans-serif;
+  height: 5%;
+} 
+#name {
+  background-color: #f4f0e6;
+  width: 300px;
+  font-size: 18px;
+  padding: 8px;
+  display: inline;
+  border-radius: 10px;
+  margin: 0 20px;
+}
+#paragraph-info {
+  color: #f4f0e6;
+  font-family: 'Amiri Quran Colored';
+  font-size: 1.25rem;
+  line-height: 50px;
+}
+#choose-file {
+  display: inline;
+  font-size: 1rem;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: #c3d7c9;
+}
+#choose-file:hover {
+  background-color: #6f987e;
+  color: #f3f0e6;
+}
+#choose-file:active {
+  background-color: #597a65;
+  color: #f3f0e6;
+}
+#spectrogramCanvas {
+  border: 1px solid #f4f0e6;
+  display: block;
+  margin: 10px auto;
+
+}
+#myForm {
+  display:flex;
+  align-items:center;
+  justify-content: center;
+  margin: 10px 30%;
+}
+#saveButton{
+  font-size: 1rem;
+  padding: 0.7%;
+  border-radius: 10px;
+  background-color: #c3d7c9;
+  margin:10px 1%;
+  display:inline;
+}
+#saveButton:hover {
+  background-color: #6f987e;
+  color: #f3f0e6;
+}
+#saveButton:active{
+  background-color: #597a65;
+  color: #f3f0e6;
+}
+#canvas-save {
+  margin: 10px 10%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color: #f4f0e6;
+}
+#stored-values-head {
+  color: #f4f0e6;
+  font-size:1.5rem;
+ text-align:center;
+ margin-bottom: 5px;
+
+}
+#send-back{
+  font-size: 1.2rem;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: #c3d7c9;
+  display:inline;
+  margin: 10px 47%;
+}
+#send-back:hover {
+  background-color: #6f987e;
+  color: #f3f0e6;
+}
+#send-back:active{
+  background-color: #597a65;
+  color: #f3f0e6;
+}
+#canvas-save {
+  justify-content:center;
+  align-items:center;
+  color: #f4f0e6;
+}
+#coordinates {
+  color: #f4f0e6;
+  font-size: 1rem;
+  display:flex;
+  text-align: center;
+  justify-content: center;
+  width: 100vw;
+}
+#storedValues {
+  color: #f4f0e6;
+  display: flex;
+  justify-content:center;
+  align-items:center;
+  font-size: 1rem;
+  margin: 5px;
+}
+.delete-button {
+  margin-left: 25px;
+  background-color: #e74c3c;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.delete-button:hover {
+  background-color: #c0392b;
+}
+#class-species {
+  font-size: 1.15rem;
+  margin-right: 2%;
+}
+select {
+  font-size: 1rem;
+}
+#addButton {
+  font-size: 1rem;
+  padding: 0.7%;
+  border-radius: 10px;
+  background-color: #b0bef5;
+  margin:10px 1%;
+  display:inline;
+  color: black;
+}
+#downloadDataButton {
+  display:block;
+  font-size: 0.9rem;
+  padding: 0.7%;
+  border-radius: 10px;
+  background-color: #b0bef5;
+  font-size: 1.2rem;
+}
+#downloadDataButton:hover {
+  background-color: #4e536b;
+  color:white;
+}
+#downloadDiv {
+  display:flex;
+  justify-content: center;
+  align-items:center;
+  max-width: 100%;
+  margin-top:10px;
+  margin-bottom: 10px;
+}
+#form-container {
+  display:flex;
+  justify-content: center;
+  align-items: center;
+}
+#labelForSpecies {
+  color: white;
+  font-size: 1.2rem;
+}
+#newSpecies {
+  margin: auto 0.5%;
+  padding: 5px;
+  font-size: 1rem;
+}
+#addSpeciesButton {
+  padding: 5px 2%;
+  font-size: 1rem;
+  background-color: #fad0d0;
+  border-radius: 10px;
+  margin: auto 2%;
+}
+#addSpeciesToList:hover {
+background-color: rgb(124, 89, 89);
+color: white;
+}
+
+
+#batSpecies {
+  width: 200px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  appearance: none; /* Remove default arrow in Chrome */
+  -webkit-appearance: none; /* Remove default arrow in older versions of Chrome */
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+#batSpecies option {
+  background-color: #fff;
+  color: #333;
+}
+
+#batSpecies:hover,
+#batSpecies:focus {
+  outline: none;
+  border-color: #66afe9;
+  box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+}
+
+/* Style the selected option */
+#batSpecies option:checked {
+  background-color: #66afe9;
+  color: #fff;
+}
+
+/* Style the dropdown arrow */
+#batSpecies::after {
+  content: '▼'; /* Unicode character for a downward arrow */
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+#labelForSpecies {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1.15rem;
+  /* color: #333; Dark gray text color */
+}
+
+#newSpecies {
+  width: 50%;
+  padding: 7px;
+  box-sizing: border-box;
+  border: 2px solid #dddddd26; /* Light gray border */
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+/* Optional: Style the placeholder text */
+#newSpecies::placeholder {
+  color: #aaa; /* Light gray placeholder text color */
+}
+
+/* Optional: Style for focus state */
+#newSpecies:focus {
+  outline: none; /* Remove default focus outline */
+  border-color: #4CAF50; /* Green border color on focus */
+}
